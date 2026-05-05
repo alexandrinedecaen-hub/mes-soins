@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mes Soins">
+<meta name="theme-color" content="#fff8f5">
+<title>Mes Soins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rose: #c4617a; --rose-l: #fceef2; --rose-d: #8a3d52;
+  --teal: #3a9e82; --teal-l: #e4f5ef; --teal-d: #1f6b57;
+  --amber: #b87c2e; --amber-l: #fef3e2; --amber-d: #7a5018;
+  --purple: #6b58c4; --purple-l: #eeedfe; --purple-d: #3c3489;
+  --blue: #3a7ec4; --blue-l: #e6f1fb; --blue-d: #0c447c;
+  --cream: #fff8f5; --sand: #f2ebe4; --card: #ffffff;
+  --text: #2d2320; --muted: #9e8f86;
+  --border: rgba(180,150,140,0.2); --border2: rgba(180,150,140,0.35);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --radius: 16px; --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+.topbar {
+  background: rgba(255,248,245,0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  position: sticky; top: 0; z-index: 20;
+  padding: calc(var(--safe-top) + 14px) 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.topbar h1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+.topbar p  { font-size: 13px; color: var(--muted); margin-top: 1px; }
+.settings-btn { background: var(--sand); border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; flex-shrink: 0; }
+
+.notif-banner { margin: 12px 20px 0; background: var(--purple-l); border: 1px solid rgba(107,88,196,0.2); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.notif-banner.hidden { display: none; }
+.nb-icon { font-size: 20px; flex-shrink: 0; }
+.nb-text  { flex: 1; font-size: 13px; color: var(--purple-d); font-weight: 500; }
+.nb-sub   { font-size: 11px; color: var(--purple); font-weight: 400; margin-top: 1px; }
+.nb-close { font-size: 20px; color: var(--purple); padding: 0 4px; }
+
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 14px 20px 4px; }
+.stat  { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 6px; text-align: center; }
+.stat-n { font-size: 22px; font-weight: 500; }
+.stat-l { font-size: 10px; color: var(--muted); margin-top: 1px; line-height: 1.3; }
+
+.section   { padding: 0 20px; margin-top: 18px; }
+.sec-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; position: relative; overflow: hidden; transition: transform 0.1s; }
+.card:active { transform: scale(0.99); }
+.card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:16px 0 0 16px; }
+.card.late::before { background: var(--rose); }
+.card.now::before  { background: var(--teal); }
+.card.soon::before { background: var(--amber); }
+
+.icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; line-height: 1; }
+.ic-rose   { background: var(--rose-l); }
+.ic-teal   { background: var(--teal-l); }
+.ic-amber  { background: var(--amber-l); }
+.ic-blue   { background: var(--blue-l); }
+.ic-purple { background: var(--purple-l); }
+.ic-gray   { background: var(--sand); }
+
+.task-info { flex: 1; min-width: 0; }
+.task-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.badge    { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+.b-late   { background: var(--rose-l);   color: var(--rose-d); }
+.b-now    { background: var(--teal-l);   color: var(--teal-d); }
+.b-soon   { background: var(--amber-l);  color: var(--amber-d); }
+.b-ok     { background: var(--sand);     color: var(--muted); }
+
+.done-btn { flex-shrink: 0; background: none; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); cursor: pointer; transition: all 0.15s; }
+.done-btn.done { background: var(--teal-l); border-color: var(--teal); color: var(--teal-d); font-weight: 500; }
+.del-btn  { flex-shrink: 0; background: none; border: none; font-size: 20px; color: #cbbdb8; cursor: pointer; padding: 2px 4px; line-height: 1; }
+
+.add-section { margin: 20px 20px calc(var(--safe-bottom) + 24px); background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; }
+.add-title   { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; margin-bottom: 14px; }
+.field { margin-bottom: 10px; }
+.field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.field input, .field select { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); appearance: none; -webkit-appearance: none; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--rose); }
+.add-btn { width: 100%; padding: 14px; background: var(--text); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; }
+.add-btn:active { opacity: 0.8; }
+
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 31; background: var(--cream); border-radius: 24px 24px 0 0; padding: 0 24px calc(var(--safe-bottom) + 24px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0,0,1); }
+.panel.open { transform: translateY(0); }
+.panel-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 14px auto 20px; }
+.panel-title  { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; margin-bottom: 20px; }
+.setting-row  { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { font-size: 14px; font-weight: 500; }
+.setting-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.setting-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.notif-status  { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+.ns-on  { background: var(--teal-l);   color: var(--teal-d); }
+.ns-off { background: var(--rose-l);   color: var(--rose-d); }
+.ns-na  { background: var(--sand);     color: var(--muted); }
+.action-btn { background: var(--text); color: white; border: none; border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+.time-input { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 15px; font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); width: 110px; }
+.close-btn  { width: 100%; padding: 14px; background: var(--sand); color: var(--text); border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 20px; }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 15px; }
+
+@media (prefers-color-scheme: dark) {
+  :root { --cream:#1a1412; --sand:#251e1b; --card:#231c19; --text:#f5ede9; --muted:#7a6b65; --border:rgba(255,200,180,0.1); --border2:rgba(255,200,180,0.2); }
+  .topbar { background: rgba(26,20,18,0.92); }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Mes soins</h1>
+    <p id="date-lbl"></p>
+  </div>
+  <button class="settings-btn" onclick="openPanel()">⚙️</button>
+</div>
+
+<div class="notif-banner hidden" id="notif-banner" onclick="requestNotifPermission()">
+  <div class="nb-icon">🔔</div>
+  <div class="nb-text">Activer les rappels<div class="nb-sub">Reçois une notification quand des soins sont à faire</div></div>
+  <span class="nb-close" onclick="event.stopPropagation();dismissBanner()">×</span>
+</div>
+
+<div class="stats" id="stats"></div>
+<div id="main"></div>
+
+<div class="add-section">
+  <p class="add-title">Nouvelle routine</p>
+  <div class="field"><label>Nom</label><input type="text" id="nn" placeholder="Ex : Gommage corps" autocomplete="off" /></div>
+  <div class="field">
+    <label>Fréquence</label>
+    <select id="nf">
+      <option value="1">Chaque jour</option>
+      <option value="2">Tous les 2 jours</option>
+      <option value="7" selected>Chaque semaine</option>
+      <option value="14">Toutes les 2 semaines</option>
+      <option value="21">Toutes les 3 semaines</option>
+      <option value="28">Toutes les 4 semaines</option>
+      <option value="42">Toutes les 6 semaines</option>
+      <option value="56">Toutes les 8 semaines</option>
+      <option value="90">Tous les 3 mois</option>
+      <option value="c">Personnalisé (jours)...</option>
+    </select>
+  </div>
+  <div class="field" id="cdg" style="display:none"><label>Nombre de jours</label><input type="number" id="cd" min="1" value="30" /></div>
+  <button class="add-btn" onclick="addTask()">+ Ajouter</button>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-handle"></div>
+  <p class="panel-title">Paramètres</p>
+  <div class="setting-row">
+    <div><div class="setting-label">Notifications</div><div class="setting-sub">Rappels quand des soins sont dus</div></div>
+    <div class="setting-right">
+      <span class="notif-status" id="ns">—</span>
+      <button class="action-btn" id="notif-btn" onclick="handleNotifBtn()">Activer</button>
+    </div>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Rappel quotidien</div><div class="setting-sub">Heure à laquelle vérifier tes soins</div></div>
+    <input type="time" class="time-input" id="reminder-time" value="08:00" onchange="saveReminderTime()" />
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Tester</div><div class="setting-sub">Envoie une notification de test</div></div>
+    <button class="action-btn" onclick="sendTestNotif()">Envoyer</button>
+  </div>
+  <button class="close-btn" onclick="closePanel()">Fermer</button>
+</div>
+
+<script>
+const ICONS = [
+  {k:['matin'],              e:'🌅', c:'amber'},
+  {k:['soir','nuit'],        e:'🌙', c:'purple'},
+  {k:['masque visage','masque'],e:'🧖',c:'rose'},
+  {k:['gommage','exfoliant'],e:'✨', c:'amber'},
+  {k:['hydrat','corps'],     e:'💧', c:'blue'},
+  {k:['ongles mains','manucure'],e:'💅',c:'rose'},
+  {k:['ongles pieds','pédicure'],e:'🦶',c:'teal'},
+  {k:['lumière pulsée','ipl','laser'],e:'⚡',c:'amber'},
+  {k:['sourcils'],           e:'🪮', c:'rose'},
+  {k:['colorat','teinture'], e:'🎨', c:'purple'},
+  {k:['masque cheveux','capillaire'],e:'💆',c:'teal'},
+  {k:['coupe','salon'],      e:'✂️', c:'blue'},
+  {k:['épilation','cire','rasage'],e:'🌿',c:'teal'},
+  {k:['skincare','soin'],    e:'🧴', c:'blue'},
+  {k:['dents','dentaire'],   e:'🦷', c:'blue'},
+  {k:['sport','gym'],        e:'🏃', c:'teal'},
+];
+function getIcon(name) {
+  const n = name.toLowerCase();
+  for(const i of ICONS) if(i.k.some(k=>n.includes(k))) return i;
+  return {e:'✦', c:'gray'};
+}
+
+const DEFAULTS = [
+  {id:'t1', name:'Skincare matin',           freqDays:1,  lastDone:null},
+  {id:'t2', name:'Skincare soir',            freqDays:1,  lastDone:null},
+  {id:'t3', name:'Masque visage',            freqDays:7,  lastDone:null},
+  {id:'t4', name:'Gommage corps',            freqDays:7,  lastDone:null},
+  {id:'t5', name:'Hydratation corps',        freqDays:2,  lastDone:null},
+  {id:'t6', name:'Ongles mains',             freqDays:14, lastDone:null},
+  {id:'t7', name:'Ongles pieds',             freqDays:21, lastDone:null},
+  {id:'t8', name:'Épilation lumière pulsée', freqDays:28, lastDone:null},
+  {id:'t9', name:'Épilation sourcils',       freqDays:21, lastDone:null},
+  {id:'t10',name:'Coloration cheveux',       freqDays:42, lastDone:null},
+  {id:'t11',name:'Masque cheveux',           freqDays:14, lastDone:null},
+  {id:'t12',name:'Coupe / entretien',        freqDays:56, lastDone:null},
+];
+let tasks = [];
+
+function save() { localStorage.setItem('mes-soins-v2', JSON.stringify(tasks)); }
+function load() { const s=localStorage.getItem('mes-soins-v2'); tasks=s?JSON.parse(s):DEFAULTS; if(!s)save(); }
+function tod()  { return new Date().toISOString().split('T')[0]; }
+function daysSince(d) { if(!d)return null; const a=new Date(d),b=new Date(); a.setHours(0,0,0,0);b.setHours(0,0,0,0); return Math.round((b-a)/86400000); }
+function daysUntil(t) { return t.lastDone ? t.freqDays-daysSince(t.lastDone) : -t.freqDays; }
+function status(d)    { return d<0?'late':d===0?'now':d<=3?'soon':'ok'; }
+function fmtDate(s)   { return s?new Date(s).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'jamais'; }
+function fmtFreq(n)   { return n===1?'chaque jour':'tous les '+n+' jours'; }
+
+function badgeHtml(d) {
+  const s=status(d);
+  const t={late:'Retard'+(Math.abs(d)>0?' +'+Math.abs(d)+'j':''),now:"Aujourd'hui",soon:'Dans '+d+' j',ok:'Dans '+d+' j'};
+  return `<span class="badge b-${s}">${t[s]}</span>`;
+}
+function cardHtml(t) {
+  const d=daysUntil(t),s=status(d),done=t.lastDone===tod(),ic=getIcon(t.name);
+  return `<div class="card ${s}">
+    <div class="icon-wrap ic-${ic.c}">${ic.e}</div>
+    <div class="task-info">
+      <div class="task-name">${t.name}</div>
+      <div class="task-meta">Dernier : ${fmtDate(t.lastDone)} · ${fmtFreq(t.freqDays)}</div>
+    </div>
+    ${badgeHtml(d)}
+    <button class="done-btn${done?' done':''}" onclick="markDone('${t.id}')">${done?'✓ Fait':'Fait'}</button>
+    <button class="del-btn" onclick="del('${t.id}')">×</button>
+  </div>`;
+}
+
+function render() {
+  const sorted=[...tasks].sort((a,b)=>daysUntil(a)-daysUntil(b));
+  const grps={late:[],now:[],soon:[],ok:[]};
+  sorted.forEach(t=>grps[status(daysUntil(t))].push(t));
+  const lbls={late:'À faire maintenant',now:"Aujourd'hui",soon:'Dans les 3 jours',ok:'À venir'};
+  let h='';
+  ['late','now','soon','ok'].forEach(k=>{
+    if(!grps[k].length)return;
+    h+=`<div class="section"><p class="sec-label">${lbls[k]}</p>`;
+    grps[k].forEach(t=>h+=cardHtml(t));
+    h+='</div>';
+  });
+  if(!tasks.length)h='<div class="empty">Aucune routine pour l\'instant.</div>';
+  document.getElementById('main').innerHTML=h;
+  const doneT=tasks.filter(t=>t.lastDone===tod()).length;
+  const late=grps.late.length,now=grps.now.length;
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:${late>0?'var(--rose)':'var(--text)'}">${late}</div><div class="stat-l">en retard</div></div>
+    <div class="stat"><div class="stat-n" style="color:${now>0?'var(--amber)':'var(--text)'}">${now}</div><div class="stat-l">aujourd'hui</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--teal)">${doneT}</div><div class="stat-l">faits ce jour</div></div>
+    <div class="stat"><div class="stat-n">${tasks.length}</div><div class="stat-l">routines</div></div>`;
+}
+
+function markDone(id){const t=tasks.find(x=>x.id===id);if(t){t.lastDone=tod();save();render();}}
+function del(id){if(!confirm('Supprimer cette routine ?'))return;tasks=tasks.filter(t=>t.id!==id);save();render();}
+function addTask(){
+  const name=document.getElementById('nn').value.trim();
+  if(!name){document.getElementById('nn').focus();return;}
+  const pv=document.getElementById('nf').value;
+  const fd=pv==='c'?(parseInt(document.getElementById('cd').value)||7):parseInt(pv);
+  tasks.push({id:'t'+Date.now(),name,freqDays:fd,lastDone:null});
+  document.getElementById('nn').value='';
+  save();render();window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('nf').addEventListener('change',function(){
+  document.getElementById('cdg').style.display=this.value==='c'?'block':'none';
+});
+
+function openPanel(){document.getElementById('overlay').classList.add('open');document.getElementById('panel').classList.add('open');updateNotifStatus();}
+function closePanel(){document.getElementById('overlay').classList.remove('open');document.getElementById('panel').classList.remove('open');}
+
+function updateNotifStatus(){
+  const el=document.getElementById('ns'),btn=document.getElementById('notif-btn');
+  if(!('Notification' in window)){el.textContent='Non dispo';el.className='notif-status ns-na';btn.style.display='none';return;}
+  const p=Notification.permission;
+  if(p==='granted'){el.textContent='Activées';el.className='notif-status ns-on';btn.textContent='Info';}
+  else if(p==='denied'){el.textContent='Bloquées';el.className='notif-status ns-off';btn.textContent='Réglages';}
+  else{el.textContent='Inactives';el.className='notif-status ns-off';btn.textContent='Activer';}
+}
+function handleNotifBtn(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='denied'){alert('Les notifications sont bloquées.\nVa dans Réglages iPhone > Safari > Notifications pour les débloquer.');}
+  else if(Notification.permission==='granted'){alert('Les notifications sont déjà activées !');}
+  else{requestNotifPermission();}
+}
+async function requestNotifPermission(){
+  if(!('Notification' in window)){alert('Les notifications ne sont pas supportées ici.');return;}
+  if(Notification.permission==='denied'){alert('Les notifications sont bloquées.\nVa dans Réglages iPhone > Safari > Notifications.');return;}
+  const r=await Notification.requestPermission();
+  if(r==='granted'){dismissBanner();showNotif('Mes Soins 🌸','Rappels activés ! Tu seras prévenue quand des soins sont à faire.','');scheduleReminder();}
+  updateNotifStatus();
+}
+function canNotify(){return 'Notification' in window && Notification.permission==='granted';}
+function showNotif(title,body,tag){if(!canNotify())return;new Notification(title,{body,tag,renotify:true});}
+function sendTestNotif(){
+  if(!canNotify()){alert('Active d\'abord les notifications depuis les paramètres !');return;}
+  const due=tasks.filter(t=>daysUntil(t)<=0);
+  if(due.length)showNotif('Mes Soins 🌸',`${due.length} soin${due.length>1?'s':''} à faire : ${due.slice(0,3).map(t=>t.name).join(', ')}${due.length>3?'…':''},'test'`);
+  else showNotif('Mes Soins 🌸','Tout est à jour, bravo ! 🎉','test');
+}
+
+let reminderTimer=null;
+function saveReminderTime(){localStorage.setItem('mes-soins-reminder',document.getElementById('reminder-time').value);scheduleReminder();}
+function scheduleReminder(){
+  if(reminderTimer)clearTimeout(reminderTimer);
+  if(!canNotify())return;
+  const time=localStorage.getItem('mes-soins-reminder')||'08:00';
+  const [h,m]=time.split(':').map(Number);
+  const now=new Date(),target=new Date();
+  target.setHours(h,m,0,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  reminderTimer=setTimeout(()=>{
+    const due=tasks.filter(t=>daysUntil(t)<=0);
+    if(due.length)showNotif('Mes Soins 🌸',`${due.length} soin${due.length>1?'s':''} à faire : ${due.slice(0,3).map(t=>t.name).join(', ')}${due.length>3?'…':''}','daily'`);
+    else showNotif('Mes Soins 🌸','Bonjour ! Tout est à jour aujourd\'hui 🌸','daily');
+    setTimeout(scheduleReminder,60000);
+  },target-now);
+}
+
+function showBannerIfNeeded(){
+  if(!('Notification' in window))return;
+  if(Notification.permission!=='default')return;
+  if(localStorage.getItem('banner-dismissed'))return;
+  document.getElementById('notif-banner').classList.remove('hidden');
+}
+function dismissBanner(){document.getElementById('notif-banner').classList.add('hidden');localStorage.setItem('banner-dismissed','1');}
+
+function notifyOnOpen(){
+  if(!canNotify())return;
+  const today=tod();
+  if(localStorage.getItem('notified-open')===today)return;
+  localStorage.setItem('notified-open',today);
+  const due=tasks.filter(t=>daysUntil(t)<=0);
+  if(due.length)setTimeout(()=>showNotif('Mes Soins 🌸',`${due.length} soin${due.length>1?'s':''} à faire : ${due.slice(0,3).map(t=>t.name).join(', ')}${due.length>3?'…':''}','open'`),2000);
+}
+
+document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+const savedTime=localStorage.getItem('mes-soins-reminder');
+if(savedTime)document.getElementById('reminder-time').value=savedTime;
+load();render();showBannerIfNeeded();notifyOnOpen();scheduleReminder();
+
+if('serviceWorker' in navigator){
+  const sw=`const C='mes-soins-v2';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll([location.pathname]))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match(location.pathname)))));`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+</script>
+</body>
+</html>
